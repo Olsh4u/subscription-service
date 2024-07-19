@@ -47,28 +47,26 @@ func (app *Config) render(w http.ResponseWriter, r *http.Request, t string, td *
 		return
 	}
 
-	if err := tmpl.Execute(w, app.defaultData(td, r)); err != nil {
+	if err := tmpl.Execute(w, app.AddDefaultData(td, r)); err != nil {
 		app.ErrorLog.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 }
 
-func (app *Config) defaultData(td *TemplateData, r *http.Request) *TemplateData {
+func (app *Config) AddDefaultData(td *TemplateData, r *http.Request) *TemplateData {
 	td.Flash = app.Session.PopString(r.Context(), "flash")
 	td.Warning = app.Session.PopString(r.Context(), "warning")
 	td.Error = app.Session.PopString(r.Context(), "error")
-	if app.isAuthenticated(r) {
+	if app.IsAuthenticated(r) {
 		td.Authenticated = true
 		// TODO - get more user information
 	}
 	td.Now = time.Now()
 
 	return td
-
 }
 
-func (app *Config) isAuthenticated(r *http.Request) bool {
+func (app *Config) IsAuthenticated(r *http.Request) bool {
 	return app.Session.Exists(r.Context(), "userID")
 }
