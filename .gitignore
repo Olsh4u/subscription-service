@@ -1,0 +1,89 @@
+# Директории, генерируемые инструментами сборки
+target/
+out/
+bin/
+build/
+
+# Конфигурационные файлы IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Файлы ОС
+.DS_Store
+Thumbs.db
+
+# Лог-файлы
+*.log
+
+# Файлы зависимостей
+node_modules/
+vendor/
+*.jar
+*.war
+*.ear
+
+# Файлы, связанные с Python
+*.pyc
+*.pyo
+__pycache__/
+
+# Конфигурационные файлы, содержащие чувствительные данные
+*.env
+*.local
+
+# Файлы, генерируемые компиляторами
+*.class
+*.o
+*.so
+*.dll
+*.exe
+
+# Файлы, создаваемые инструментами отладки
+*.swp
+*.swo
+
+# Файлы, генерируемые приложениями
+*.sqlite
+*.sql
+*.db
+
+# Файлы изображений и медиа
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.ico
+
+# Архивы
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Минифицированные и скомпилированные ресурсы
+*.min.js
+*.min.css
+
+# Документы
+*.pdf
+*.docx
+*.xlsx
+*.pptx
+*.ods
+*.odt
+
+# Локальные файлы проекта
+*.local.properties
+
+# Папка database файлов
+db-data/
+
+# Go dependency file
+go.sum
