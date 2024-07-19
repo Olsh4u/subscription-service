@@ -2,19 +2,19 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sync"
 	"time"
 
-	"github.com/alexedwards/scs/stores/redisstore"
+	"github.com/alexedwards/scs/redisstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/gomodule/redigo/redis"
 	_ "github.com/jackc/pgconn"
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	_ "google.golang.org/genproto/googleapis/cloud/redis/v1"
 )
 
 const webPort = "80"
@@ -47,8 +47,22 @@ func main() {
 	// set up mail
 
 	// listen for web connections
+	app.serve()
 }
 
+func (app *Config) serve() {
+	// start http server
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", webPort),
+		Handler: app.routes(),
+	}
+
+	app.InfoLog.Println("Starting web server...")
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Panic()
+	}
+}
 func initDB() *sql.DB {
 	conn := connectToDB()
 	if conn == nil {
