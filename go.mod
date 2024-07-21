@@ -9,7 +9,6 @@ require (
 	github.com/gomodule/redigo v1.8.0
 	github.com/jackc/pgconn v1.14.3
 	github.com/jackc/pgx/v4 v4.18.3
-	github.com/zenazn/goji v0.9.0
 )
 
 require (
