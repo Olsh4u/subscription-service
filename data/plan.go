@@ -17,7 +17,7 @@ type Plan struct {
 	UpdatedAt           time.Time
 }
 
-func (p *Plan) GetAll() ([]*Plan, error) {
+func (p *Plan) All() ([]*Plan, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -54,8 +54,8 @@ func (p *Plan) GetAll() ([]*Plan, error) {
 	return plans, nil
 }
 
-// GetOne returns one plan by id
-func (p *Plan) GetOne(id int) (*Plan, error) {
+// ById returns one plan by id
+func (p *Plan) ById(id int) (*Plan, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
