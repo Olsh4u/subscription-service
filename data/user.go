@@ -3,9 +3,10 @@ package data
 import (
 	"context"
 	"errors"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // User is the structure which holds one user from the database.
@@ -22,8 +23,8 @@ type User struct {
 	Plan      *Plan
 }
 
-// GetAll returns a slice of all users, sorted by last name
-func (u *User) GetAll() ([]*User, error) {
+// All returns a slice of all users, sorted by last name
+func (u *User) All() ([]*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -75,8 +76,8 @@ func (u *User) GetAll() ([]*User, error) {
 	return users, nil
 }
 
-// GetByEmail returns one user by email
-func (u *User) GetByEmail(email string) (*User, error) {
+// ByEmail returns one user by email
+func (u *User) ByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -139,8 +140,8 @@ func (u *User) GetByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-// GetOne returns one user by id
-func (u *User) GetOne(id int) (*User, error) {
+// ById returns one user by id
+func (u *User) ById(id int) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
