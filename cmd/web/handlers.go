@@ -54,7 +54,11 @@ func (app *Config) PostLoginPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) Logout(w http.ResponseWriter, r *http.Request) {
+	// clean up session
+	_ = app.Session.Destroy(r.Context())
+	_ = app.Session.RenewToken(r.Context())
 
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 func (app *Config) RegisterPage(w http.ResponseWriter, r *http.Request) {
@@ -63,9 +67,20 @@ func (app *Config) RegisterPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) PostRegisterPage(w http.ResponseWriter, r *http.Request) {
+	// create user
+
+	// send an actibation email
+
+	// subscribe user to an account
 
 }
 
 func (app *Config) ActivateAccount(w http.ResponseWriter, r *http.Request) {
+	// validate url
 
+	// generate an invoice
+
+	// send an email with attachments
+
+	// send an email with the invoice attached
 }
