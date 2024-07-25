@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
+	"html/template"
 	"sync"
 	"time"
 
+	"github.com/vanng822/go-premailer/premailer"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
@@ -33,8 +37,22 @@ type Message struct {
 	Template    string
 }
 
-// a function to listen for messages on the MailerChan
+func (app *Config) listenForMail() {
+	for {
+		select {
+		case msg := <-app.Mailer.MailerChan:
+			go app.Mailer.sendMail(msg, app.Mailer.ErrorChan)
+		case err := <-app.Mailer.ErrorChan:
+			app.ErrorLog.Println(err)
+		case <-app.Mailer.DoneChan:
+			return
+		}
+	}
+}
+
 func (m *Mail) sendMail(msg Message, errChan chan error) {
+	defer m.Wait.Done()
+
 	if msg.Template == "" {
 		msg.Template = "mail"
 	}
@@ -99,11 +117,63 @@ func (m *Mail) sendMail(msg Message, errChan chan error) {
 }
 
 func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
-	return "", nil
+	templateToRender := fmt.Sprintf("./cmd/web/templates/%s.html.gohtml", msg.Template)
+
+	t, err := template.New("email-html").ParseFiles(templateToRender)
+	if err != nil {
+		return "", nil
+	}
+
+	var tpl bytes.Buffer
+	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
+		return "", nil
+	}
+
+	formattedMsg := tpl.String()
+	formattedMsg, err = m.inlineCSS(formattedMsg)
+	if err != nil {
+		return "", nil
+	}
+
+	return formattedMsg, nil
 }
 
 func (m *Mail) buildPlainMessage(msg Message) (string, error) {
-	return "", nil
+	templateToRender := fmt.Sprintf("./cmd/web/templates/%s.html.gohtml", msg.Template)
+
+	t, err := template.New("email-plain").ParseFiles(templateToRender)
+	if err != nil {
+		return "", nil
+	}
+
+	var tpl bytes.Buffer
+	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
+		return "", nil
+	}
+
+	plainMsg := tpl.String()
+
+	return plainMsg, nil
+}
+
+func (m *Mail) inlineCSS(s string) (string, error) {
+	options := premailer.Options{
+		RemoveClasses:     false,
+		CssToAttributes:   false,
+		KeepBangImportant: true,
+	}
+
+	prem, err := premailer.NewPremailerFromString(s, &options)
+	if err != nil {
+		return "", nil
+	}
+
+	html, err := prem.Transform()
+	if err != nil {
+		return "", nil
+	}
+
+	return html, nil
 }
 
 func (m *Mail) encrypt(e string) mail.Encryption {
