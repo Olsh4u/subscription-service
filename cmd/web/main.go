@@ -167,7 +167,12 @@ func (app *Config) shutdown() {
 
 	app.Wait.Wait()
 
+	app.Mailer.DoneChan <- true
+
 	app.InfoLog.Println("closing channels and shutting down application...")
+	close(app.createMail().MailerChan)
+	close(app.createMail().ErrorChan)
+	close(app.createMail().DoneChan)
 }
 
 func (app *Config) createMail() Mail {
