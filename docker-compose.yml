@@ -23,6 +23,7 @@ services:
     restart: always
     volumes:
       - ./db-data/redis/:/data
+    command: ["--loglevel", "debug"]
 
   #  start mailhog
   mailhog:
