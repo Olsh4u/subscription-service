@@ -154,13 +154,27 @@ func (app *Config) ActivateAccount(w http.ResponseWriter, r *http.Request) {
 	app.Session.Put(r.Context(), "flash", "Account activated. You can now log in.")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 
-	// generate an invoice
-
 	// send an email with attachments
+}
+
+func (app *Config) SubscribeToPlan(w http.ResponseWriter, r *http.Request) {
+	// get the id of the plan that is chosen
+
+	// get the plan from database
+
+	// get the user from the session
+
+	// generate an invoice
 
 	// send an email with the invoice attached
 
+	// generate a manual
+
+	// send an email with manual attached
+
 	// subscribe user to an account
+
+	// redirect
 }
 
 func (app *Config) ChooseSubscription(w http.ResponseWriter, r *http.Request) {
