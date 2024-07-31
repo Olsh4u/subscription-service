@@ -1,11 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/phpdave11/gofpdf"
+	"github.com/phpdave11/gofpdf/contrib/gofpdi"
 	"html/template"
 	"net/http"
 	"strconv"
 	"subscription-service/data"
+	"time"
 )
 
 func (app *Config) HomePage(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +166,10 @@ func (app *Config) SubscribeToPlan(w http.ResponseWriter, r *http.Request) {
 	// get the id of the plan that is chosen
 	id := r.URL.Query().Get("id")
 
-	planID, _ := strconv.Atoi(id)
+	planID, err := strconv.Atoi(id)
+	if err != nil {
+		app.ErrorLog.Println("Error getting plan ID:", err)
+	}
 
 	// get the plan from database
 	plan, err := app.Models.Plan.ById(planID)
@@ -202,12 +209,76 @@ func (app *Config) SubscribeToPlan(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// generate a manual
+	app.Wait.Add(1)
+	go func() {
+		defer app.Wait.Done()
 
-	// send an email with manual attached
+		pdf := app.generateManual(user, plan)
+		err := pdf.OutputFileAndClose(fmt.Sprintf("./tmp/%d_manual.pdf", user.ID))
+		if err != nil {
+			app.ErrorChan <- err
+			return
+		}
 
-	// subscribe user to an account
+		msg := Message{
+			To:      user.Email,
+			Subject: "Your manuals",
+			Data:    "Your user manual is attached",
+			AttachmentMap: map[string]string{
+				"Manual.pdf": fmt.Sprintf("./tmp/%d_manual.pdf", user.ID),
+			},
+		}
+
+		app.sendEmail(msg)
+
+		// test app error chan
+		app.ErrorChan <- errors.New("some custom error")
+	}()
+
+	// subscribe user to a plan
+	err = app.Models.Plan.SubscribeUserToPlan(user, *plan)
+	if err != nil {
+		app.Session.Put(r.Context(), "error", "Error subscribing to plan!")
+		http.Redirect(w, r, "/members/plan", http.StatusSeeOther)
+		return
+	}
+
+	u, err := app.Models.User.ById(user.ID)
+	if err != nil {
+		app.Session.Put(r.Context(), "error", "Error getting user from database!")
+		http.Redirect(w, r, "/members/plan", http.StatusSeeOther)
+		return
+	}
+
+	app.Session.Put(r.Context(), "user", u)
 
 	// redirect
+	app.Session.Put(r.Context(), "flash", "Subscribed!")
+	http.Redirect(w, r, "/members/plans", http.StatusSeeOther)
+}
+
+func (app *Config) generateManual(u data.User, p *data.Plan) *gofpdf.Fpdf {
+	pdf := gofpdf.New("P", "mm", "Letter", "")
+	pdf.SetMargins(10, 13, 10)
+
+	importer := gofpdi.NewImporter()
+
+	time.Sleep(5 * time.Second)
+
+	t := importer.ImportPage(pdf, "./pdf/manual.pdf", 1, "/MediaBox")
+	pdf.AddPage()
+
+	importer.UseImportedTemplate(pdf, t, 0, 0, 215.9, 0)
+
+	pdf.SetX(75)
+	pdf.SetY(150)
+
+	pdf.SetFont("Arial", "", 12)
+	pdf.MultiCell(0, 4, fmt.Sprintf("%s %s", u.FirstName, u.LastName), "", "C", false)
+	pdf.Ln(5)
+	pdf.MultiCell(0, 4, fmt.Sprintf("%s User Guide", p.PlanName), "", "C", false)
+
+	return pdf
 }
 
 func (app *Config) getInvoice(u data.User, plan *data.Plan) (string, error) {
